@@ -1,12 +1,15 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import { ApiError } from "../utils/apiError";
 import type {
     AddMemberInput,
     CreateWorkspaceInput,
-    UpdateWorkspaceInput,
+    RemoveMemberInput,
+    UpdateWorkspaceInput, removeMemberSchema
 } from "../validators/workspace.validator";
-import { success } from "zod";
+
+
+
 
 export const createWorkspace = async (req: Request, res: Response): Promise<void> => {
     const ownerId = req.user!.id;
@@ -103,7 +106,6 @@ export const addMemberToWorkspace = async (req: Request, res: Response): Promise
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) throw new ApiError("No user with this email", 404);
-    console.log(user)
     const existing = await prisma.workspaceMember.findUnique({
         where: {
             workspaceId_userId: { workspaceId, userId: user.id }
@@ -111,20 +113,66 @@ export const addMemberToWorkspace = async (req: Request, res: Response): Promise
     })
     if (existing)
         throw new ApiError("User is already a member", 409);
-    console.log('exist', existing)
-    console.log(workspaceId, user.id, role)
+
     const member = await prisma.workspaceMember.create({
         data: { workspaceId, userId: user.id, role },
         include: { user: { select: { id: true, name: true, email: true } } }
-    }
-
-    )
-    console.log('member', member)
+    })
     res.status(201).json({
         success: true,
         message: "Member added successfully",
         data: member
     })
 
+};
 
+//delete member or exit
+
+
+export const addUserIdToParams = (
+    req: Request,
+    _res: Response,
+    next: NextFunction
+): void => {
+    req.params.memberId = req.user!.id;
+    next();
+};
+
+export const removeMemberFromWorkspace = async (
+    req: Request<RemoveMemberInput>,
+    res: Response
+): Promise<void> => {
+
+    const { workspaceId, memberId } = req.params;
+
+    const existing = await prisma.workspaceMember.findUnique({
+        where: {
+            workspaceId_userId: {
+                workspaceId,
+                userId: memberId
+            }
+        }
+    });
+
+    if (!existing) {
+        throw new ApiError("Member not found", 404);
+    }
+
+    if (existing.role === "OWNER") {
+        throw new ApiError("Cannot remove workspace owner", 403);
+    }
+
+    await prisma.workspaceMember.delete({
+        where: {
+            workspaceId_userId: {
+                workspaceId,
+                userId: memberId
+            }
+        }
+    });
+
+    res.status(200).json({
+        success: true,
+        message: "Member removed successfully"
+    });
 };
