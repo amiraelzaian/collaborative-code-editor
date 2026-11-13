@@ -6,6 +6,7 @@ import { errorHandler } from "./middlewares/errorHandler.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.route"
+import workspaceRouter from "./routes/workspace.route"
 
 const app = express();
 
@@ -50,6 +51,7 @@ app.get("/", (req, res, next) => {
 });
 
 app.use("/api/v1/auth", authRouter)
+app.use("/api/v1/workspace", workspaceRouter)
 
 
 

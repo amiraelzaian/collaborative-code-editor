@@ -50,6 +50,7 @@ model Workspace {
   workspaceMembers WorkspaceMember[]
   rooms            Room[]
 
+  @@unique([ownerId, name])
   @@index([ownerId])
 }
 
