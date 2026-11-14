@@ -17,8 +17,10 @@ import {
     updateRoom,
 } from "../controllers/room.controller";
 import { createInvite } from "../controllers/invite.controller";
-
+import codeRouter from "./code.route"
 const router = Router({ mergeParams: true });
+router.use("/:roomId/code", codeRouter)
+
 
 router.use(authenticate);
 router.use(validate(workspaceIdSchema, "params"));
