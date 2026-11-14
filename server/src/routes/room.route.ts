@@ -16,6 +16,7 @@ import {
     getWorkspaceRooms,
     updateRoom,
 } from "../controllers/room.controller";
+import { createInvite } from "../controllers/invite.controller";
 
 const router = Router({ mergeParams: true });
 
@@ -36,5 +37,12 @@ router
         updateRoom,
     )
     .delete(validate(roomIdSchema, "params"), requireRoomAccess("manage"), deleteRoom);
+
+router.post(
+    "/:roomId/invites",
+    validate(roomIdSchema, "params"),
+    requireRoomAccess("manage"),
+    createInvite,
+);
 
 export default router;
