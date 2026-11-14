@@ -28,6 +28,9 @@ export const validate = (schema: ZodType, target: Target = 'body') => (
     if (target === 'body') {
         req.body = result.data;
     }
+    if (target === 'query') {
+        res.locals.query = result.data
+    }
     next();
 
 }

@@ -3,6 +3,9 @@ import type { WorkspaceRole } from "../generated/prisma/enums";
 import { prisma } from "../lib/prisma";
 import { ApiError } from "../utils/apiError";
 import type { CreateRoomInput, UpdateRoomInput } from "../validators/room.validator";
+import { ListRoomsQuery } from "../validators/query.validator";
+import { getPagination, paginationMeta } from "../utils/pagination";
+import { success } from "zod";
 
 export const createRoom = async (req: Request, res: Response): Promise<void> => {
     const workspaceId = req.params["workspaceId"] as string;
@@ -27,25 +30,39 @@ export const createRoom = async (req: Request, res: Response): Promise<void> => 
 export const getWorkspaceRooms = async (req: Request, res: Response): Promise<void> => {
     const workspaceId = req.params["workspaceId"] as string;
     const member = res.locals.member as { role: WorkspaceRole };
+    const { page, limit, search, language, visibility, mine, sort } = res.locals.query as ListRoomsQuery;
     const isManager = member.role === "OWNER" || member.role === "ADMIN";
+    const userId = req.user!.id;
 
-    const rooms = await prisma.room.findMany({
-        where: {
-            workspaceId,
-            // regular members see WORKSPACE rooms plus the ones they created
-            ...(isManager
-                ? {}
-                : { OR: [{ visibility: "WORKSPACE" as const }, { createdById: req.user!.id }] }),
-        },
-        orderBy: { createdAt: "desc" },
-    });
+    const where = {
+        workspaceId,
+        AND: [
+            ...(isManager ? [] : [
+                { OR: [{ visibility: "WORKSPACE" as const }, { createdById: userId }] }
+            ]),
+            ...(search ? [{ name: { contains: search, mode: "insensitive" as const } }] : []),
+            ...(language ? [{ language }] : []),
+            ...(visibility ? [{ visibility }] : []),
+            ...(mine === 'true' ? [{ createdById: userId }] : [])
+        ],
+    };
+
+    const orderBy =
+        sort === 'name' ? { name: 'asc' as const }
+            : { createdAt: sort === 'oldest' ? ('asc' as const) : ("desc" as const) }
+
+    const [rooms, total] = await prisma.$transaction([
+        prisma.room.findMany({ where, orderBy, ...getPagination(page, limit) }),
+        prisma.room.count({ where })
+    ])
 
     res.status(200).json({
         success: true,
         message: "Rooms fetched successfully",
-        count: rooms.length,
         data: rooms,
-    });
+        paginatin: paginationMeta(total, page, limit)
+    })
+
 };
 
 // access already checked by requireRoomAccess("view")

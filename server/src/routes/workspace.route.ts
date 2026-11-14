@@ -17,6 +17,7 @@ import {
 import { requireWorkspaceRole } from "../middlewares/requireWorkspaceRole";
 import membersRouter from "./workspaceMember.route"
 import roomsRouter from "./room.route"
+import { listWorkspacesQuerySchema } from "../validators/query.validator";
 
 const router = Router();
 
@@ -27,7 +28,7 @@ router.use("/:workspaceId/rooms", roomsRouter)
 
 router.route("/")
     .post(validate(createWorkspaceSchema), createWorkspace)
-    .get(getAllMyWorkspaces);
+    .get(validate(listWorkspacesQuerySchema, 'query'), getAllMyWorkspaces);
 
 router.route("/:workspaceId")
     .get(

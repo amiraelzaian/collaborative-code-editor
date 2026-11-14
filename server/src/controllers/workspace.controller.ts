@@ -7,6 +7,8 @@ import type {
     RemoveMemberInput,
     UpdateWorkspaceInput, removeMemberSchema
 } from "../validators/workspace.validator";
+import { ListMembersQuery, ListWorkspacesQuery } from "../validators/query.validator";
+import { getPagination, paginationMeta } from "../utils/pagination";
 
 
 
@@ -41,9 +43,7 @@ export const getWorkspace = async (req: Request, res: Response): Promise<void> =
     const workspace = await prisma.workspace.findUnique({
         where: { id: workspaceId },
         include: {
-            workspaceMembers: {
-                include: { user: { select: { id: true, name: true, email: true } } },
-            },
+            _count: { select: { workspaceMembers: true, rooms: true } }
         },
     });
     if (!workspace) throw new ApiError("Workspace not found", 404);
@@ -57,19 +57,32 @@ export const getWorkspace = async (req: Request, res: Response): Promise<void> =
 
 // every workspace I belong to (owned or joined)
 export const getAllMyWorkspaces = async (req: Request, res: Response): Promise<void> => {
-    const memberships = await prisma.workspaceMember.findMany({
-        where: { userId: req.user!.id },
-        include: { workspace: true },
-        orderBy: { joinedAt: "desc" },
-    });
 
-    const workspaces = memberships.map((m) => ({ ...m.workspace, myRole: m.role }));
+    const { page, limit, search, role, sort } = res.locals.query as ListWorkspacesQuery
 
+    const where = {
+        userId: req.user!.id,
+        ...(role && { role }),
+        ...(search && { workspace: { name: { contains: search, mode: "insensitive" as const } } })
+    }
+    const orderBy =
+        sort === 'name' ? { workspace: { name: "asc" as const } } :
+            { joinedAt: sort === 'oldest' ? ("asc" as const) : ("desc" as const) }
+
+    const [memberships, total] = await prisma.$transaction([
+        prisma.workspaceMember.findMany({
+            where,
+            include: { workspace: true },
+            orderBy,
+            ...getPagination(page, limit)
+        }),
+        prisma.workspaceMember.count({ where })
+    ])
     res.status(200).json({
         success: true,
         message: "Workspaces fetched successfully",
-        count: workspaces.length,
-        data: workspaces,
+        data: memberships.map(m => ({ ...m.workspace, myRole: m.role })),
+        pagination: paginationMeta(total, page, limit)
     });
 };
 
@@ -176,3 +189,44 @@ export const removeMemberFromWorkspace = async (
         message: "Member removed successfully"
     });
 };
+
+//get workspace members
+
+
+export const getWorkspaceMemers = async (req: Request, res: Response): Promise<void> => {
+    const workspaceId = req.params['workspaceId'] as string;
+    const { page, limit, search, role } = res.locals.query as ListMembersQuery;
+
+    const where = {
+        workspaceId,
+        ...(role && { role }),
+        ...(search && {
+            user: {
+                OR: [
+                    { name: { contains: search, mode: "insensitive" as const } },
+                    { email: { contains: search, mode: "insensitive" as const } }
+                ]
+            }
+        })
+    }
+
+    const [members, total] = await prisma.$transaction([
+        prisma.workspaceMember.findMany({
+            where,
+            include: { user: { select: { id: true, name: true, email: true } } },
+            orderBy: { joinedAt: 'asc' },
+            ...getPagination(page, limit)
+        }),
+        prisma.workspaceMember.count({ where })
+    ])
+    res.status(200).json({
+        success: true,
+        message: "Members fetched successfully",
+        data: members,
+        pagination: paginationMeta(total, page, limit)
+    })
+
+
+}
+
+

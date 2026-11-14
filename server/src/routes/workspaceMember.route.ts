@@ -2,8 +2,9 @@ import { Router } from "express";
 import { validate } from "../middlewares/validate";
 import { addMemberSchema, removeMemberSchema, workspaceIdSchema } from "../validators/workspace.validator";
 import { requireWorkspaceRole } from "../middlewares/requireWorkspaceRole";
-import { addMemberToWorkspace, addUserIdToParams, removeMemberFromWorkspace } from "../controllers/workspace.controller";
+import { addMemberToWorkspace, addUserIdToParams, getWorkspaceMemers, removeMemberFromWorkspace } from "../controllers/workspace.controller";
 import { authenticate } from "../middlewares/auth";
+import { listMembersQuerySchema } from "../validators/query.validator";
 
 
 
@@ -18,6 +19,11 @@ router.route("/").post(
     requireWorkspaceRole("OWNER", "ADMIN"),
     validate(addMemberSchema),
     addMemberToWorkspace
+).get(
+    validate(workspaceIdSchema, 'params'),
+    requireWorkspaceRole(),
+    validate(listMembersQuerySchema, 'query'),
+    getWorkspaceMemers
 )
 router.delete(
     "/leave",

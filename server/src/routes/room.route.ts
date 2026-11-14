@@ -18,6 +18,7 @@ import {
 } from "../controllers/room.controller";
 import { createInvite } from "../controllers/invite.controller";
 import codeRouter from "./code.route"
+import { listRoomsQuerySchema } from "../validators/query.validator";
 const router = Router({ mergeParams: true });
 router.use("/:roomId/code", codeRouter)
 
@@ -27,7 +28,7 @@ router.use(validate(workspaceIdSchema, "params"));
 router
     .route("/")
     .post(requireWorkspaceRole(), validate(createRoomSchema), createRoom)
-    .get(requireWorkspaceRole(), getWorkspaceRooms);
+    .get(requireWorkspaceRole(), validate(listRoomsQuerySchema, 'query'), getWorkspaceRooms);
 
 router
     .route("/:roomId")
