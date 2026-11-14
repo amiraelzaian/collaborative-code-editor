@@ -84,6 +84,7 @@ model Room {
   roomInvites       RoomInvite[]
   documentSnapshots DocumentSnapshot[]
 
+  @@unique([workspaceId, name])
   @@index([workspaceId])
 }
 

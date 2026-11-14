@@ -16,12 +16,14 @@ import {
 } from "../validators/workspace.validator";
 import { requireWorkspaceRole } from "../middlewares/requireWorkspaceRole";
 import membersRouter from "./workspaceMember.route"
+import roomsRouter from "./room.route"
 
 const router = Router();
 
 router.use(authenticate);
 
 router.use("/:workspaceId/members", membersRouter)
+router.use("/:workspaceId/rooms", roomsRouter)
 
 router.route("/")
     .post(validate(createWorkspaceSchema), createWorkspace)
