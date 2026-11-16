@@ -78,6 +78,9 @@ export const getAllMyWorkspaces = async (req: Request, res: Response): Promise<v
         }),
         prisma.workspaceMember.count({ where })
     ])
+    if (memberships.length === 0 || total === 0) {
+        throw new ApiError("NO Workspaces found", 404)
+    }
     res.status(200).json({
         success: true,
         message: "Workspaces fetched successfully",
