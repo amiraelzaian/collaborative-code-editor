@@ -59,6 +59,3 @@ api.interceptors.response.use((response) => response, async (error: AxiosError) 
 })
 
 
-
-
-
