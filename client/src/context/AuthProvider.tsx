@@ -3,6 +3,7 @@ import type { User } from "../types/user";
 import { refreshSession, setAccessToken } from "../api/client";
 import * as authApi from "../api/auth.api";
 import { AuthContext } from "./authContext";
+import { queryClient } from "../lib/queryClient";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -30,8 +31,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // 2) the axios client announces when the session is truly over
   useEffect(() => {
-    const onLogout = () => setUser(null);
+    const onLogout = () => {
+      queryClient.clear();
+       setUser(null);
+      }
     window.addEventListener("auth:logout", onLogout);
+   
     return () => window.removeEventListener("auth:logout", onLogout);
   }, []);
 
@@ -51,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await authApi.logout();
     } finally {
+      queryClient.clear();
       setAccessToken(null);
       setUser(null);
     }
