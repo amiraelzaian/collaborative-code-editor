@@ -52,7 +52,7 @@ app.get("/", (req, res, next) => {
 });
 
 app.use("/api/v1/auth", authRouter)
-app.use("/api/v1/workspace", workspaceRouter)
+app.use("/api/v1/workspaces", workspaceRouter)
 app.use("/api/v1/invites", inviteRouter);
 
 

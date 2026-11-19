@@ -137,7 +137,7 @@ const navigate=useNavigate();
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full rounded-lg bg-indigo-500 py-2 font-medium text-white hover:bg-indigo-400 disabled:opacity-60"
+          className="w-full rounded-lg bg-indigo-500 py-2 font-medium text-white hover:bg-indigo-400 disabled:opacity-60 cursor-pointer"
         >
           {isSubmitting ? "Creating account..." : "Create account"}
         </button>

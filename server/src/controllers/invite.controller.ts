@@ -23,7 +23,6 @@ export const createInvite = async (req: Request, res: Response): Promise<void> =
             tokenHash: hashtoken(token),
             expiresAt,
             createdById: req.user!.id
-
         }
     })
 
@@ -34,8 +33,8 @@ export const createInvite = async (req: Request, res: Response): Promise<void> =
         data: { token, link: `${clientUrl}/join/${token}`, expiresAt }
     })
 
-
 }
+
 
 export const joinWithInvite = async (req: Request, res: Response): Promise<void> => {
     const { token } = req.body as { token: string };
@@ -45,7 +44,7 @@ export const joinWithInvite = async (req: Request, res: Response): Promise<void>
         include: { room: true },
     })
     if (!invite || invite.expiresAt < new Date()) {
-        throw new ApiError("Invite is invalid or expired", 404)
+        throw new ApiError("Invite is    invalid or expired", 404)
     }
     await prisma.workspaceMember.upsert({
         where: {
