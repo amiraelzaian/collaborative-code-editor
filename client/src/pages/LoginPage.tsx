@@ -1,12 +1,15 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { loginSchema, type LoginForm } from "../schemas/auth.schema";
 import { getErrorMessage } from "../lib/errors";
+import { useRedirectTarget } from "../hooks/useRedirectTarget";
 
 export default function LoginPage() {
   const { user, loading, login } = useAuth();
+  const target = useRedirectTarget();
+  const location=useLocation();
 
   const {
     register,
@@ -15,7 +18,9 @@ export default function LoginPage() {
     formState: { errors, isSubmitting },
   } = useForm<LoginForm>({ resolver: zodResolver(loginSchema) });
 
-  if (!loading && user) return <Navigate to="/workspaces" replace />;
+
+if (!loading && user) return <Navigate to={target} replace />;
+
 
   const onSubmit = async (values: LoginForm) => {
     try {
@@ -76,7 +81,7 @@ export default function LoginPage() {
         </button>
 
         <p className="text-center text-sm text-slate-400">
-          New here? <Link to="/register" className="text-indigo-400">Create account</Link>
+          New here? <Link to="/register" state={location.state} className="text-indigo-400">Create account</Link>
         </p>
       </form>
     </div>

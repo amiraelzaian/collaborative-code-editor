@@ -1,13 +1,14 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { registerSchema, type RegisterForm } from "../schemas/auth.schema";
 import { getErrorMessage } from "../lib/errors";
 
 export default function RegisterPage() {
   const { loading, register: createNewAccount } = useAuth();
+  const location=useLocation();
 const navigate=useNavigate();
   const {
     register,
@@ -144,7 +145,7 @@ const navigate=useNavigate();
 
         <p className="text-center text-sm text-slate-400">
           Already have an account?{" "}
-          <Link to="/login" className="text-indigo-400 hover:text-indigo-300">
+          <Link to="/login"state={location.state}  className="text-indigo-400 hover:text-indigo-300">
             Sign in
           </Link>
         </p>
