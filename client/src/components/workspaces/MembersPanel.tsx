@@ -2,7 +2,7 @@ import { useState } from "react";
 import Avatar from "../ui/Avatar";
 import Badge from "../ui/Badge";
 import Button from "../ui/Button";
-import EmptyState from "../ui/EmptySate";
+import EmptyState from "../ui/EmptyState";
 import Spinner from "../ui/Spinner";
 import AddMemberModal from "./AddMemberModal";
 import { useGetWorkspaceMembers, useDeleteWorkspaceMember } from "../../hooks/useWorkspace";

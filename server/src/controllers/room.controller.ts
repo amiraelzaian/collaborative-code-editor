@@ -5,7 +5,41 @@ import { ApiError } from "../utils/apiError";
 import type { CreateRoomInput, UpdateRoomInput } from "../validators/room.validator";
 import { ListRoomsQuery } from "../validators/query.validator";
 import { getPagination, paginationMeta } from "../utils/pagination";
-import { success } from "zod";
+
+
+export type RoomAccessMode = 'view' | "manage";
+
+interface RoomAccessParams {
+    userId: string;
+    roomId: string;
+    workspaceId?: string | undefined;
+    mode: RoomAccessMode;
+}
+export async function assertRoomAccess({ userId, roomId, workspaceId, mode }: RoomAccessParams) {
+    const room = await prisma.room.findUnique({ where: { id: roomId } })
+    if (!room) throw new ApiError("Room not found", 404);
+
+    if (workspaceId && room.workspaceId !== workspaceId) {
+        throw new ApiError("Room not found", 404)
+    }
+
+    const member = await prisma.workspaceMember.findUnique({
+        where: { workspaceId_userId: { workspaceId: room.workspaceId, userId } }
+    })
+    if (!member) throw new ApiError("Room not found", 404)
+
+    const isManger = member.role === "ADMIN" || member.role === 'OWNER';
+    const isCreator = room.createdById === userId;
+
+    if (mode === 'view' && room.visibility === 'PRIVATE' && !isManger && !isCreator) {
+        throw new ApiError("Room not found", 404)
+    }
+    if (mode === 'manage' && !isManger && !isCreator) {
+        throw new ApiError("Forbidden", 403)
+    }
+    return room
+}
+
 
 export const createRoom = async (req: Request, res: Response): Promise<void> => {
     const workspaceId = req.params["workspaceId"] as string;

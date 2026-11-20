@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Button from "../components/ui/Button";
-import EmptyState from "../components/ui/EmptySate";
+import EmptyState from "../components/ui/EmptyState";
 import Spinner from "../components/ui/Spinner";
 import RoomCard from "../components/rooms/RoomCard";
 import CreateRoomModal from "../components/rooms/CreateRoomModal";

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Button from "../components/ui/Button";
-import EmptyState from "../components/ui/EmptySate";
+import EmptyState from "../components/ui/EmptyState";
 import Spinner from "../components/ui/Spinner";
 import WorkspaceCard from "../components/workspaces/WorkspaceCard";
 import WorkspaceFilters from "../components/workspaces/WorkspaceFilters";

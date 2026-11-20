@@ -4,6 +4,7 @@ import { refreshSession, setAccessToken } from "../api/client";
 import * as authApi from "../api/auth.api";
 import { AuthContext } from "./authContext";
 import { queryClient } from "../lib/queryClient";
+import { connectSocket, disconnectSocket } from "../lib/socket";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -39,6 +40,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    
     return () => window.removeEventListener("auth:logout", onLogout);
   }, []);
+
+  //3) the socket follows the session: logged in= connected, logged out = disconnected
+  const userId=user?.id 
+  useEffect(()=>{
+    if(userId) connectSocket();
+    else disconnectSocket()
+  },[userId]) 
+
 
   const login = async (email: string, password: string) => {
     const result = await authApi.login(email, password);

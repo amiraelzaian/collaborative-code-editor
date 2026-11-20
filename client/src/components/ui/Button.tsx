@@ -25,7 +25,7 @@ export default function Button({
     return (
         <button
             disabled={disabled || loading}
-            className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${styles[variant]} ${className}`}
+            className={`cursor-pointer inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${styles[variant]} ${className}`}
             {...rest}
         >
             {loading ? "Please wait…" : children}

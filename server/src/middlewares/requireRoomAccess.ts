@@ -1,36 +1,13 @@
 import type { Request, Response, NextFunction } from "express";
-import { prisma } from "../lib/prisma";
-import { ApiError } from "../utils/apiError";
+import { assertRoomAccess, type RoomAccessMode } from "../controllers/room.controller";
 
-export const requireRoomAccess = (mode: "view" | "manage") =>
+export const requireRoomAccess = (mode: RoomAccessMode) =>
     async (req: Request, res: Response, next: NextFunction) => {
-        const room = await prisma.room.findUnique({
-            where: { id: req.params['roomId'] as string }
-        })
-        if (!room) throw new ApiError("Room not found", 404);
-        const member = await prisma.workspaceMember.findUnique({
-            where: {
-                workspaceId_userId: { workspaceId: room.workspaceId, userId: req.user!.id }
-            }
-        })
-        if (!member) throw new ApiError("Room not found", 404);
-
-        const isManager = member.role === "ADMIN" || member.role === 'OWNER';
-        const isCreator = room.createdById === req.user!.id;
-        const urlWorkspaceId = req.params["workspaceId"];
-
-        if (urlWorkspaceId && room.workspaceId !== urlWorkspaceId) {
-            throw new ApiError("Room not found", 404);
-        }
-        if (mode === 'view' && room.visibility === 'PRIVATE' && !isManager && !isCreator) {
-            throw new ApiError("Room is not found", 404)
-        }
-        if (mode === "manage" && !isManager && !isCreator) {
-            throw new ApiError("Forbidden", 403);
-        }
-
-        res.locals.room = room;
+        res.locals.room = await assertRoomAccess({
+            userId: req.user!.id,
+            roomId: req.params["roomId"] as string,
+            workspaceId: req.params["workspaceId"] as string,
+            mode,
+        });
         next();
-
-    }
-
+    };

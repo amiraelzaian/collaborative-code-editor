@@ -8,6 +8,9 @@ import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.route"
 import workspaceRouter from "./routes/workspace.route"
 import inviteRouter from "./routes/invite.route"
+import { createServer } from "node:http";
+import { initSocket } from "./realtime/socket";
+
 
 const app = express();
 
@@ -16,6 +19,8 @@ app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
+const httpServer = createServer(app);
+initSocket(httpServer)
 
 // // rate limmiter 
 // const apiLimiter = rateLimit({
@@ -90,7 +95,7 @@ async function startServer() {
     try {
         await prisma.$connect();
 
-        app.listen(port, () => {
+        httpServer.listen(port, () => {
             console.log(`Server running on http://localhost:${port}`);
         });
     } catch (error) {
