@@ -111,7 +111,7 @@ export default function RoomPage() {
         </div>
       )}
 
-      <CodeEditor workspaceId={workspaceId} roomId={roomId} language={room.language} />
+      <CodeEditor  roomId={roomId} language={room.language} />
     </div>
   );
 }
